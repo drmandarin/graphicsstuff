@@ -15,13 +15,16 @@ public class Main implements KeyListener, MouseListener, MouseWheelListener{
   JFrame fullFrame, winFrame;
   Point winFrameLocation;
   //StrangeAttractor01 jpanel;
-  StrangeAttractor02 jpanel;
+  //StrangeAttractor02 jpanel;
+  //StrangeAttractor03 jpanel;
+  //StrangeAttractor04 jpanel;
+  StrangeAttractor05 jpanel;
   //SuperSample4 superSample4;
  
   public Main(){
-    width = 400;
-    height = 400;
-    jpanel = new StrangeAttractor02(width,height,5,5,1);
+    width = 1440;
+    height = 900;
+    jpanel = new StrangeAttractor05(width,height,5,5,1);
     winFrame = new JFrame("StrangeAttractor");
     winFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     winFrame.getContentPane().add(jpanel);

@@ -59,6 +59,14 @@ class Util{
 
     return colour;
   }
+  
+  protected static char mapCoefficient(double coefficient){
+    return (char)(coefficient * 10 + 77);
+  }
+  
+  protected static double mapCoefficient(char coefficient){
+    return (double)(((int)coefficient - 77) * 0.1);
+  }
 
   protected static rgba[][] mapDensities(rgba[][] histo){
     double maxAlpha, scale;

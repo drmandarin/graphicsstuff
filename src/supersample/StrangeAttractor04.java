@@ -6,7 +6,7 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import javax.swing.JPanel;
 
-public class StrangeAttractor02 extends JPanel implements Runnable{
+public class StrangeAttractor04 extends JPanel implements Runnable{
   byte superFactor;
   double xDelta, xMax, xMin, yDelta, yMax, yMin;
   int height, width;
@@ -14,7 +14,7 @@ public class StrangeAttractor02 extends JPanel implements Runnable{
   GaussKernel blurKernel, sampleKernel;
   rgba[][] finalImage, superSample;
   
-  public StrangeAttractor02(int w, int h, int gW, int gH, int sF){
+  public StrangeAttractor04(int w, int h, int gW, int gH, int sF){
     init(w,h,gW,gH,sF);
     superSample = renderImage(superSample);
     superSample = Util.mapDensities(superSample);
@@ -51,10 +51,10 @@ public class StrangeAttractor02 extends JPanel implements Runnable{
       }
     }
     bufferedImage = new BufferedImage(width,height,BufferedImage.TYPE_INT_RGB);
-    xMax = 1;
-    xMin = 0;
-    yMax = 1;
-    yMin = 0;
+    xMax = 1.3;
+    xMin = -2.0;
+    yMax = 1.3;
+    yMin = -2.0;
     xDelta = (superSample.length - 1)/(xMax - xMin);
     yDelta = (superSample[0].length - 1)/(yMax - yMin);
   }
@@ -70,46 +70,74 @@ public class StrangeAttractor02 extends JPanel implements Runnable{
   private rgba[][] plot(rgba[][] sS, double xFunc, double yFunc, int[] colour){
     int xGrid, yGrid;
     xGrid = (int)((xFunc - xMin) * xDelta);
-    yGrid = (int)(sS[xGrid].length - (yFunc - yMin) * yDelta);
     if (xFunc < xMax &&
         xFunc > xMin &&
         yFunc < yMax &&
         yFunc > yMin   ){
+      yGrid = (int)(sS[xGrid].length - (yFunc - yMin) * yDelta);
       sS[xGrid][yGrid].addColour(colour);
     }
     return sS;
   }
 
   private rgba[][] renderImage(rgba[][] sS){
-    double R, ln2, lyapunov, xFunc, yFunc;
-    double[] funcValues;
-    int counter, modNum, numPrev;
-    int[] colour1, colour2;
+    double ln2, lsum, lyapunov, xFunc;
+    double[] A, funcValues;
+    double maxx, minx, maxCo, minCo, incCo;
+    int counter, modNum, numIterations, numPrev;
+    int[][] colours;
 
-    colour1 = Util.red(255);
-    colour2 = Util.green(255);
-    R = 4;
-    numPrev = 10;
+    numIterations = 10;
+    colours = new int[2][3];
+    colours[0] = Util.red(255);
+    colours[1] = Util.green(255);
+    minCo = -5.0;
+    maxCo = -minCo;
+    incCo = 0.1;
+    A = new double[3];
+    numPrev = 5;
     modNum = numPrev + 1;
     funcValues = new double[numPrev+1];
-    counter = 0;
     ln2 = Math.log(2);
-
-    for (double j=xMin;j<=xMax;j+=0.001){
-      xFunc = j;
-      lyapunov = 0;
-      for (int k=0;k<1200;k++){
-        yFunc = R * xFunc * (1 - xFunc);
-        //sS = plot(sS,xFunc,yFunc,colour1);
-        xFunc = yFunc;
-        funcValues[counter % modNum] = yFunc;
-        //sS = plot(sS,funcValues[(counter + 1) % modNum],funcValues[counter % modNum],colour2);
-        counter++;
-        lyapunov += (Math.log(Math.abs(R - 2 * R * xFunc)))/ln2;
+    
+    int rangeEnd = (int)((maxCo - minCo)/incCo + 1);
+    for (int a = 0;a < rangeEnd;a++){
+      A[0] = a * incCo + minCo;
+      System.out.println("1: " + A[0]);
+      for (double b = 0;b < rangeEnd;b++){
+        A[1] = b * incCo + minCo;
+        for (double c = 0;c < rangeEnd;c++){
+          A[2] = c * incCo + minCo;
+          counter = 0;
+          funcValues[0] = 0.5;
+          minx = 10000000000d;
+          maxx = -minx;
+          xFunc = funcValues[0];
+          lsum = Math.log(Math.abs(2 * A[2] * xFunc + A[1]))/ln2;
+          lyapunov = 0;
+          
+          for (int j=0;j<numIterations;j++){
+            xFunc = A[0] + xFunc * (A[1] + A[2] * xFunc);
+            lsum += Math.log(Math.abs(2 * A[2] * xFunc + A[1]))/ln2;
+            lyapunov = lsum/j;
+            //plot(sS,funcValues[(counter + 1) % modNum],xFunc,colours[0]);
+            //plot(sS,xFunc,lyapunov,colours[1]);
+            counter++;
+            funcValues[counter % modNum] = xFunc;
+            if (xFunc > maxx){
+              maxx = xFunc;
+            }
+            if (xFunc < minx){
+              minx = xFunc;
+            }
+          }
+          if (lyapunov > 0 && maxx < 10000000d && minx > -10000000d){
+            //System.out.println("lyapunov: " + lyapunov);
+            //System.out.println("min :" + minx + " & max: " + maxx);
+            //System.out.println(A[0] + " : " + A[1] + " : " + A[2]);
+          }
+        }
       }
-      //lyapunov /= 1200;
-      //System.out.println(xFunc + ":" + lyapunov);
-      sS = plot(sS,xFunc,lyapunov,colour2);
     }
     return sS;
   }
