@@ -22,8 +22,8 @@ public class Main implements KeyListener, MouseListener, MouseWheelListener{
   //SuperSample4 superSample4;
  
   public Main(){
-    width = 1440;
-    height = 900;
+    width = 400;
+    height = 400;
     jpanel = new StrangeAttractor05(width,height,5,5,1);
     winFrame = new JFrame("StrangeAttractor");
     winFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

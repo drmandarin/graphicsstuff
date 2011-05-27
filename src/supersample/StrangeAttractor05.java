@@ -106,7 +106,7 @@ public class StrangeAttractor05 extends JPanel implements Runnable{
     A[3] = Util.mapCoefficient('R');
     A[4] = Util.mapCoefficient('I');
     A[5] = Util.mapCoefficient('L');
-    numPrev = 5;
+    numPrev = 1;
     modNum = numPrev + 1;
     funcValues = new double[numPrev+1];
     counter = 0;
