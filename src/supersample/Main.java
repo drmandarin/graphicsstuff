@@ -12,7 +12,10 @@ import javax.swing.*;
 public class Main implements KeyListener, MouseListener, MouseWheelListener{
   boolean fullScreen;
   int hPad, vPad, height, width;
-  JFrame fullFrame, winFrame;
+  Controller01 controller;
+  JFrame controlFrame, fullFrame, winFrame;
+  JMenu lfMenu;
+  JMenuBar controlMenuBar;
   Point winFrameLocation;
   //StrangeAttractor01 jpanel;
   //StrangeAttractor02 jpanel;
@@ -22,11 +25,31 @@ public class Main implements KeyListener, MouseListener, MouseWheelListener{
   //SuperSample4 superSample4;
  
   public Main(){
+    UIManager.LookAndFeelInfo[] lfi = UIManager.getInstalledLookAndFeels();
+    for (int i=0;i<lfi.length;i++){
+      System.out.println(lfi[i].getName());
+      System.out.println(lfi[i].getClassName());
+    }
+    try{
+      UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
+    }
+    catch(Exception e){
+      System.out.println(e.getMessage());
+    }
+    controlMenuBar = new JMenuBar();
+    
     width = 400;
     height = 400;
+    controller = new Controller01();
+    controlFrame = new JFrame("Control");
+    controlFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    controlFrame.getContentPane().add(controller);
+    controlFrame.add(controller);
+    controlFrame.setAlwaysOnTop(true);
+    controlFrame.setVisible(true);
     jpanel = new StrangeAttractor05(width,height,5,5,1);
     winFrame = new JFrame("StrangeAttractor");
-    winFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    winFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
     winFrame.getContentPane().add(jpanel);
     winFrame.setVisible(true);
     hPad = winFrame.getInsets().left + winFrame.getInsets().right;
