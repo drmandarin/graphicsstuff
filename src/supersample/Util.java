@@ -1,6 +1,9 @@
 package supersample;
 
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.GridBagConstraints;
 import java.awt.image.BufferedImage;
 
 class Util{
@@ -60,12 +63,83 @@ class Util{
     return colour;
   }
   
+  protected static void addComp(Container cont, Component comp, int x, int y){
+    addComp(cont,comp,x,y,1,1);
+  }
+  
+  protected static void addComp(Container cont, Component comp, int x, int y, String anchor){
+    addComp(cont,comp,x,y,1,1,anchor);
+  }
+  
+  protected static void addComp(Container cont, Component comp, int x, int y, int w, int h){
+    GridBagConstraints c;
+    
+    c = new GridBagConstraints();
+    c.gridx = x;
+    c.gridy = y;
+    c.gridwidth = w;
+    c.gridheight = h;
+    cont.add(comp,c);
+  }
+  
+  protected static void addComp(Container cont, Component comp, int x, int y, int w, int h, String anchor){
+    GridBagConstraints c;
+    
+    c = new GridBagConstraints();
+    c.gridx = x;
+    c.gridy = y;
+    c.gridwidth = w;
+    c.gridheight = h;
+    if(anchor.matches("CENTER"))
+      c.anchor = GridBagConstraints.CENTER;
+    else if(anchor.matches("EAST"))
+      c.anchor = GridBagConstraints.EAST;
+    else if(anchor.matches("WEST"))
+      c.anchor = GridBagConstraints.WEST;
+    cont.add(comp,c);
+  }
+  
+  protected static double[][] decodeString(String inString){
+    double[][] coeffs;
+    
+    coeffs = null;
+    switch(inString.charAt(0)){
+      case 'A': ;
+      case 'B': ;
+      case 'C': ;
+      case 'D': coeffs = new double[1][inString.length()-1];
+                for (int i=1;i<inString.length();i++){
+                  coeffs[0][i] = mapCoefficient(inString.charAt(i));
+                }
+                break;
+      case 'E': ;
+      case 'F': ;
+      case 'G': ;
+      case 'H': coeffs = new double[2][inString.length()-1];
+                for (int i=1;i<inString.length();i++){
+                  coeffs[0][i] = mapCoefficient(inString.charAt(i));
+                }
+                break;
+    }
+    
+    return coeffs;
+  }
+  
+  protected static double fixDouble(double inVal){
+    String valString;
+    
+    valString = String.valueOf(inVal);
+    valString = valString.substring(0,valString.indexOf('.')+2);
+    
+    return Double.parseDouble(valString);
+  }
+  
   protected static char mapCoefficient(double coefficient){
     return (char)(coefficient * 10 + 77);
   }
   
   protected static double mapCoefficient(char coefficient){
-    return (double)(((int)coefficient - 77) * 0.1);
+    return fixDouble((double)((int)coefficient - 77) * 0.1d);
   }
 
   protected static rgba[][] mapDensities(rgba[][] histo){

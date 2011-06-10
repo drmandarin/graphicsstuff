@@ -10,25 +10,21 @@ import java.awt.event.MouseWheelListener;
 import javax.swing.*;
 
 public class Main implements KeyListener, MouseListener, MouseWheelListener{
-  boolean fullScreen;
-  int hPad, vPad, height, width;
-  Controller01 controller;
-  JFrame controlFrame, fullFrame, winFrame;
-  JMenu lfMenu;
-  JMenuBar controlMenuBar;
+  int height, width;
+  JFrame controlFrame, fullFrame;
   Point winFrameLocation;
   //StrangeAttractor01 jpanel;
   //StrangeAttractor02 jpanel;
   //StrangeAttractor03 jpanel;
   //StrangeAttractor04 jpanel;
-  StrangeAttractor05 jpanel;
+  StrangeController strangeController;
   //SuperSample4 superSample4;
  
   public Main(){
     UIManager.LookAndFeelInfo[] lfi = UIManager.getInstalledLookAndFeels();
     for (int i=0;i<lfi.length;i++){
-      System.out.println(lfi[i].getName());
-      System.out.println(lfi[i].getClassName());
+      //System.out.println(lfi[i].getName());
+      //System.out.println(lfi[i].getClassName());
     }
     try{
       UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
@@ -36,38 +32,28 @@ public class Main implements KeyListener, MouseListener, MouseWheelListener{
     catch(Exception e){
       System.out.println(e.getMessage());
     }
-    controlMenuBar = new JMenuBar();
+    setupController();
     
     width = 400;
     height = 400;
-    controller = new Controller01();
-    controlFrame = new JFrame("Control");
-    controlFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    controlFrame.getContentPane().add(controller);
-    controlFrame.add(controller);
-    controlFrame.setAlwaysOnTop(true);
-    controlFrame.setVisible(true);
-    jpanel = new StrangeAttractor05(width,height,5,5,1);
-    winFrame = new JFrame("StrangeAttractor");
-    winFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-    winFrame.getContentPane().add(jpanel);
-    winFrame.setVisible(true);
-    hPad = winFrame.getInsets().left + winFrame.getInsets().right;
-    vPad = winFrame.getInsets().top + winFrame.getInsets().bottom;
-    winFrame.setSize(width+hPad,height+vPad);
-    fullScreen = false;
   }
 
   public void addListeners(){
+    /*
     winFrame.addKeyListener(this);
     winFrame.addMouseListener(this);
     winFrame.addMouseWheelListener(this);
+     */
+  }
+  
+  private void setupController(){
+    controlFrame = new JFrame("Control");
+    strangeController = new StrangeController(controlFrame);
   }
 
   public static void main(String[] args){
     Main app = new Main();
     app.addListeners();
-    //app.superSample4.run();
   }
 
   @Override
@@ -84,6 +70,7 @@ public class Main implements KeyListener, MouseListener, MouseWheelListener{
 
   @Override
   public void mouseClicked(MouseEvent mE){
+    /*
     if (fullScreen){
       winFrame = new JFrame("SuperSample4");
       winFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -110,6 +97,7 @@ public class Main implements KeyListener, MouseListener, MouseWheelListener{
       fullFrame.setVisible(true);
       fullScreen = true;
     }
+     */
   }
 
   @Override
