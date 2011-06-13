@@ -18,6 +18,7 @@ import static java.lang.Math.abs;
 import static javax.swing.BorderFactory.createEtchedBorder;
 import static javax.swing.BorderFactory.createTitledBorder;
 import static supersample.Util.addComp;
+import static supersample.Util.decodeString;
 
 public class StrangeController implements ActionListener, FocusListener{
   boolean fullScreen;
@@ -82,22 +83,21 @@ public class StrangeController implements ActionListener, FocusListener{
     lfMenu.add(textItem);
     menuBar.add(lfMenu);
     frame.setJMenuBar(menuBar);
-    System.out.println(attrPanel.getWidth());
   }
   
   private String deriveFormula(String codeString){
-    //A: x = a0 + a1x + a2x^2
-    //B: x = a0 + a1x + a2x^2 + a3x^3
-    //C: x = a0 + a1x + a2x^2 + a3x^3 + a4x^4
-    //D: x = a0 + a1x + a2x^2 + a3x^3 + a4x^4 + a5x^5
-    //E: x = a0 + a1x + a2x^2 + a3xy + a4y + a5y^2
-    //   y = b0 + b1x + b2x^2 + b3xy + b4y + b5y^2
-    double[][] coeffs;
+    //A: x = a00 + a01x + a02x^2
+    //B: x = a00 + a01x + a02x^2 + a03x^3
+    //C: x = a00 + a01x + a02x^2 + a03x^3 + a04x^4
+    //D: x = a00 + a01x + a02x^2 + a03x^3 + a04x^4 + a05x^5
+    //E: x = a00 + a01x + a02x^2 + a03xy + a04y + a05y^2
+    //   y = a06 + a07x + a08x^2 + a09xy + a10y + a11y^2
+    double[] coeffs;
     String formula;
     String[] terms;
     
     formula = "<html><i>x</i><sub>n+1</sub> = ";
-    coeffs = Util.decodeString(codeString);
+    coeffs = decodeString(codeString);
     switch(codeString.charAt(0)){
       case 'A': terms = new String[3];
                 break;
@@ -131,15 +131,45 @@ public class StrangeController implements ActionListener, FocusListener{
     }
     
     formula += coeffs[0];
-    for (int i = 1;i < coeffs.length;i++){
-      if (coeffs[i] < 0)
-        formula += " - ";
-      else
-        formula += " + ";
-      formula += abs(coeffs[i]);
-      formula += terms[i];
+    switch(codeString.charAt(0)){
+      case 'A': ;
+      case 'B': ;
+      case 'C': ;
+      case 'D': for (int i = 1;i < coeffs.length;i++){
+                  if (coeffs[i] < 0)
+                    formula += " - ";
+                  else
+                    formula += " + ";
+                  formula += abs(coeffs[i]);
+                  formula += terms[i];
+                }
+                formula += "</html>";
+                break;
+      case 'E': ;
+      case 'F': ;
+      case 'G': ;
+      case 'H': for (int i = 1;i < coeffs.length/2;i++){
+                  if (coeffs[i] < 0)
+                    formula += " - ";
+                  else
+                    formula += " + ";
+                  formula += abs(coeffs[i]);
+                  formula += terms[i];
+                }
+                formula += "<br>";
+                formula += "<html><i>y</i><sub>n+1</sub> = ";
+                formula += coeffs[coeffs.length/2];
+                for (int i = coeffs.length/2 + 1;i < coeffs.length;i++){
+                  if (coeffs[i] < 0)
+                    formula += " - ";
+                  else
+                    formula += " + ";
+                  formula += abs(coeffs[i]);
+                  formula += terms[i % terms.length];
+                }
+                formula += "</html>";
+                break;
     }
-    formula += "</html>";
     
     return formula;
   }
@@ -158,7 +188,7 @@ public class StrangeController implements ActionListener, FocusListener{
     codeLabel = new JLabel(" Attractor string ");
     codeLabel.setFont(boldFont);
     addComp(attrPanel,codeLabel,0,0,"EAST");
-    codeField = new JTextField("DOOYRIL");
+    codeField = new JTextField("EWM?MPMMWMMMM");
     codeField.addFocusListener(this);
     codeField.setColumns(40);
     codeField.setFont(courFont);

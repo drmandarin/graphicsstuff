@@ -99,27 +99,12 @@ class Util{
     cont.add(comp,c);
   }
   
-  protected static double[][] decodeString(String inString){
-    double[][] coeffs;
+  protected static double[] decodeString(String inString){
+    double[] coeffs;
     
-    coeffs = null;
-    switch(inString.charAt(0)){
-      case 'A': ;
-      case 'B': ;
-      case 'C': ;
-      case 'D': coeffs = new double[1][inString.length()-1];
-                for (int i=1;i<inString.length();i++){
-                  coeffs[0][i] = mapCoefficient(inString.charAt(i));
-                }
-                break;
-      case 'E': ;
-      case 'F': ;
-      case 'G': ;
-      case 'H': coeffs = new double[2][inString.length()-1];
-                for (int i=1;i<inString.length();i++){
-                  coeffs[0][i] = mapCoefficient(inString.charAt(i));
-                }
-                break;
+    coeffs = new double[inString.length()-1];
+    for (int i = 1;i < inString.length();i++){
+      coeffs[i-1] = mapCoefficient(inString.charAt(i));
     }
     
     return coeffs;
