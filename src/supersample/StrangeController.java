@@ -19,12 +19,12 @@ import static javax.swing.BorderFactory.createEtchedBorder;
 import static javax.swing.BorderFactory.createTitledBorder;
 import static supersample.Util.addComp;
 import static supersample.Util.decodeString;
+import static supersample.Util.fmt;
 
 public class StrangeController implements ActionListener, FocusListener{
   boolean fullScreen;
   int hPad, vPad, height, width;
   Font boldFont, courFont, normFont;
-  JButton renderButton;
   JComboBox prevBox;
   JFrame winFrame;
   JLabel formString, lyaValLabel;
@@ -216,13 +216,20 @@ public class StrangeController implements ActionListener, FocusListener{
   }
   
   private void populateButtonPanel(JFrame frame){
+    JButton renderButton, searchButton;
     JPanel buttPanel;
     
     buttPanel = (JPanel)(frame.getContentPane().getComponents()[2]);
     renderButton = new JButton("Render ...");
     renderButton.addActionListener(this);
     renderButton.setFont(boldFont);
+    renderButton.setName("renderButton");
     addComp(buttPanel,renderButton,0,0,"CENTER");
+    searchButton = new JButton("Search ...");
+    searchButton.addActionListener(this);
+    searchButton.setFont(boldFont);
+    searchButton.setName("searchButton");
+    addComp(buttPanel,searchButton,1,0,"CENTER");
   }
   
   private void populateDisplayPanel(JFrame frame){
@@ -290,7 +297,10 @@ public class StrangeController implements ActionListener, FocusListener{
   
   @Override
   public void actionPerformed(ActionEvent e){
-    if (e.getSource() == renderButton){
+    String sourceName;
+    
+    sourceName = ((JButton)e.getSource()).getName();
+    if (sourceName.equalsIgnoreCase("renderButton")){
       int gkHeight, gkWidth, ssFactor, winHeight, winWidth;
       
       gkHeight = parseInt(gkHeightField.getText());
@@ -311,7 +321,21 @@ public class StrangeController implements ActionListener, FocusListener{
       jpanel.setIterations(Integer.parseInt(iterField.getText()));
       jpanel.setPrev(prevBox.getSelectedIndex());
       jpanel.run();
-      lyaValLabel.setText(String.valueOf(jpanel.getLyapunov()));
+      lyaValLabel.setText(fmt(jpanel.getLyapunov()[0]));
+    }
+    else if (sourceName.equalsIgnoreCase("searchButton")){
+      int gkHeight, gkWidth, ssFactor, winHeight, winWidth;
+      
+      gkHeight = parseInt(gkHeightField.getText());
+      gkWidth = parseInt(gkWidthField.getText());
+      ssFactor = parseInt(ssfField.getText());
+      winHeight = parseInt(winHeightField.getText());
+      winWidth = parseInt(winWidthField.getText());
+      jpanel = new StrangeAttractor05(winWidth,winHeight,gkWidth,gkHeight,ssFactor);
+      jpanel.setCode(codeField.getText());
+      jpanel.setIterations(Integer.parseInt(iterField.getText()));
+      jpanel.findAttractors(codeField.getText());
+      jpanel = null;
     }
   }
   

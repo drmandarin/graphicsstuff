@@ -8,15 +8,17 @@ import javax.swing.JPanel;
 import static java.lang.Math.abs;
 import static java.lang.Math.log;
 import static java.lang.Math.pow;
+import static java.lang.Math.sqrt;
 import static supersample.AntiAlias.downSample;
 import static supersample.AntiAlias.gaussBlur;
+import static supersample.Util.fmt;
 import static supersample.Util.mapDensities;
 
 public class StrangeAttractor05 extends JPanel implements Runnable{
   private byte superFactor;
-  private double lyapunov, xDelta, yDelta;
+  private double xDelta, yDelta;
   private int numIterations, numPrev, height, width;
-  private double[] A, max, min;
+  private double[] A, lyapunov, max, min;
   private BufferedImage bufferedImage;
   private GaussKernel blurKernel, sampleKernel;
   private String codeString;
@@ -27,16 +29,26 @@ public class StrangeAttractor05 extends JPanel implements Runnable{
   }
   
   private double[] calcDerivative(double func[], double[] A){
-    double x;
-    double xPrime;
+    double dx, dy, x, y;
+    double xPrime, yPrime;
     double[] funcPrime;
     
     x = func[0];
     xPrime = 0d;
+    yPrime = 0d;
     funcPrime = new double[func.length];
     for (int i = 0;i < funcPrime.length;i++)
       funcPrime[i] = 0d;
     switch(codeString.charAt(0)){
+      case 'E':
+        y = func[1];
+        dx = A[1] + 2 * A[2] * x + A[3] * y;
+        dy = A[3] * x + A[4] + 2 * A[5] * y;
+        xPrime = sqrt(dx * dx + dy * dy);
+        dx = A[7] + 2 * A[8] * x + A[9] * y;
+        dy = A[9] * x + A[10] + 2 * A[11] * y;
+        yPrime = sqrt(dx * dx + dy * dy);
+        break;
       case 'D': xPrime += 5 * A[5] * pow(x,4);
       case 'C': xPrime += 4 * A[4] * pow(x,3);
       case 'B': xPrime += 3 * A[3] * pow(x,2);
@@ -47,12 +59,38 @@ public class StrangeAttractor05 extends JPanel implements Runnable{
     }
     switch(funcPrime.length){
       case 3: ;//funcPrime[2] = zPrime;
-      case 2: ;//funcPrime[1] = yPrime;
+      case 2: funcPrime[1] = yPrime;
       case 1: funcPrime[0] = xPrime;
               break;
     }
     
     return funcPrime;
+  }
+  
+  protected void findAttractors(String codeString){
+    String testString;
+    
+    switch(codeString.charAt(0)){
+      case 'E':
+        for (int a0 = 32;a0 < 128;a0++){
+          testString = "E";
+          for (int k = 0;k < 12;k++){
+            testString += (char)a0;
+          }
+          testCode(testString);
+        }
+        break;
+      case 'D':
+        for (int a0 = 32;a0 < 128;a0++){
+          testString = "DOOYRI";
+          //for (int k = 0;k < 6;k++){
+            testString += (char)a0;
+          //}
+          testCode(testString);
+        }
+        break;
+    }
+    testCode(codeString);
   }
 
   private BufferedImage convertImage(BufferedImage bI, rgba[][] sS){
@@ -69,7 +107,7 @@ public class StrangeAttractor05 extends JPanel implements Runnable{
     return bI;
   }
   
-  public double getLyapunov(){
+  public double[] getLyapunov(){
     return lyapunov;
   }
   
@@ -107,16 +145,16 @@ public class StrangeAttractor05 extends JPanel implements Runnable{
     }
     switch(codeString.charAt(0)){
       case 'E': y += A[11] * pow(yN,2);
-                y += A[10] * y;
-                y += A[9] * x * y;
+                y += A[10] * yN;
+                y += A[9] * xN * yN;
                 y += A[8] * pow(xN,2);
-                y += A[7] * x;
+                y += A[7] * xN;
                 y += A[6];
                 x += A[5] * pow(yN,2);
-                x += A[4] * y;
-                x += A[3] * x * y;
+                x += A[4] * yN;
+                x += A[3] * xN * yN;
                 x += A[2] * pow(xN,2);
-                x += A[1] * x;
+                x += A[1] * xN;
                 x += A[0];
                 break;
       case 'D': x += A[5] * pow(xN,5);
@@ -149,20 +187,18 @@ public class StrangeAttractor05 extends JPanel implements Runnable{
     int xGrid, yGrid;
     
     xGrid = (int)((xFunc - min[0]) * xDelta);
-    yGrid = (int)(sS[xGrid].length - (yFunc - min[1]) * yDelta);
-    if (xGrid < sS.length    &&
-        xGrid > 0            &&
-        yFunc < sS[0].length &&
-        yFunc > 0 ){
-      sS[xGrid][yGrid].addColour(colour);
-      System.out.println("here");
+    if (xGrid < sS.length && xGrid >= 0){
+      yGrid = (int)(sS[xGrid].length - (yFunc - min[1]) * yDelta);
+      if (yGrid < sS[xGrid].length && yGrid >= 0){
+        sS[xGrid][yGrid].addColour(colour);
+      }
     }
     return sS;
   }
 
   private rgba[][] renderImage(rgba[][] sS){
-    double ln2, lsum, maxx, maxy, minx, miny;
-    double[] funcHistory, funcVals;//, max, min;
+    double ln2;
+    double[] funcHistory, funcVals, lsum, max, min;
     int counter, modNum;
     int[][] colours;
 
@@ -172,78 +208,90 @@ public class StrangeAttractor05 extends JPanel implements Runnable{
     modNum = numPrev + 1;
     funcHistory = new double[numPrev+1];
     counter = 0;
-    ln2 = Math.log(2);
+    ln2 = log(2);
     funcHistory[0] = 0.5;
     counter = 0;
-    lyapunov = 0;
-    
-    maxx = 0d;
-    minx = 0d;
     
     switch(codeString.charAt(0)){
-      case 'E': //max = new double[2];
-                //min = new double[2];
-                //max[0] = -10000000000d;
-                //max[1] = max[0];
-                //min[0] = -max[0];
-                //min[1] = -max[1];
-                maxx = -10000000000d;
-                maxy = -10000000000d;
-                minx = 10000000000d;
-                miny = 10000000000d;
-                funcVals = new double[2];
-                funcVals[0] = 0.5d;
-                funcVals[1] = 0.5d;
-                for (int j = 0;j < numIterations;j++){
-                  funcVals = iterateFunc(funcVals,A);
-                  plot(sS,funcVals[0],funcVals[1],colours[0]);
-                  if (funcVals[0] > maxx){
-                    maxx = funcVals[0];
-                  }
-                  if (funcVals[0] < minx){
-                    minx = funcVals[0];
-                  }
-                  if (funcVals[1] > maxy){
-                    maxy = funcVals[1];
-                  }
-                  if (funcVals[1] < miny){
-                    miny = funcVals[1];
-                  }
-                }
-                break;
+      case 'E':
+        lsum = new double[2];
+        lyapunov = new double[2];
+        lyapunov[0] = 0d;
+        lyapunov[1] = 0d;
+        max = new double[2];
+        min = new double[2];
+        max[0] = -10000000000d;
+        max[1] = max[0];
+        min[0] = -max[0];
+        min[1] = -max[1];
+        funcVals = new double[2];
+        funcVals[0] = 0.5d;
+        funcVals[1] = 0.5d;
+        lsum[0] = log(abs(calcDerivative(funcVals,A)[0]))/ln2;
+        lsum[1] = log(abs(calcDerivative(funcVals,A)[1]))/ln2;
+        for (int j = 0;j < numIterations;j++){
+          funcVals = iterateFunc(funcVals,A);
+          plot(sS,funcVals[0],funcVals[1],colours[0]);
+          lsum[0] += log(calcDerivative(funcVals,A)[0])/ln2;
+          lsum[1] += log(calcDerivative(funcVals,A)[1])/ln2;
+          lyapunov[0] = lsum[0]/j;
+          lyapunov[1] = lsum[1]/j;
+          if (funcVals[0] > max[0]){
+            max[0] = funcVals[0];
+          }
+          if (funcVals[0] < min[0]){
+            min[0] = funcVals[0];
+          }
+          if (funcVals[1] > max[1]){
+            max[1] = funcVals[1];
+          }
+          if (funcVals[1] < min[1]){
+            min[1] = funcVals[1];
+          }
+        }
+        break;
       case 'D': ;
       case 'C': ;
       case 'B': ;
-      case 'A': max = new double[2];
-                min = new double[2];
-                max[0] = -10000000000d;
-                max[1] = max[0];
-                min[0] = -max[0];
-                min[1] = min[0];
-                funcVals = new double[1];
-                funcVals[0] = funcHistory[0];
-                lsum = log(abs(calcDerivative(funcVals,A)[0]))/ln2;
-                for (int j = 0;j < numIterations;j++){
-                  funcVals = iterateFunc(funcVals,A);
-                  lsum += log(abs(calcDerivative(funcVals,A)[0]))/ln2;
-                  lyapunov = lsum/j;
-                  plot(sS,funcHistory[(counter + 1) % modNum],funcVals[0],colours[0]);
-                  counter++;
-                  funcHistory[counter % modNum] = funcVals[0];
-                  if (funcVals[0] > max[0]){
-                    max[0] = funcVals[0];
-                  }
-                  if (funcVals[0] < min[0]){
-                    min[0] = funcVals[0];
-                  }
-                }
-                break;
+      case 'A':
+        lsum = new double[1];
+        lyapunov = new double[1];
+        lyapunov[0] = 0;
+        max = new double[2];
+        min = new double[2];
+        max[0] = -10000000000d;
+        max[1] = max[0];
+        min[0] = -max[0];
+        min[1] = min[0];
+        funcVals = new double[1];
+        funcVals[0] = 0.5;
+        lsum[0] = log(abs(calcDerivative(funcVals,A)[0]))/ln2;
+        for (int j = 0;j < numIterations;j++){
+          funcVals = iterateFunc(funcVals,A);
+          lsum[0] += log(abs(calcDerivative(funcVals,A)[0]))/ln2;
+          lyapunov[0] = lsum[0]/j;
+          plot(sS,funcHistory[(counter + 1) % modNum],funcVals[0],colours[0]);
+          counter++;
+          funcHistory[counter % modNum] = funcVals[0];
+          if (funcVals[0] > max[0]){
+            max[0] = funcVals[0];
+          }
+          if (funcVals[0] < min[0]){
+            min[0] = funcVals[0];
+          }
+        }
+        break;
       default: max = null;
                min = null;
                break;
     }
-    System.out.println("lyapunov: " + lyapunov);
-    System.out.println("min :" + minx + " & max: " + maxx);
+    System.out.println("lyapunov:");
+    for (int i = 0;i < lyapunov.length;i++){
+      System.out.println(fmt(lyapunov[i]));
+    }
+    for (int i = 0;i < min.length;i++){
+      System.out.println("min :" + fmt(min[i]) + " & max: " + fmt(max[i]));
+    }
     
     return sS;
   }
@@ -251,8 +299,6 @@ public class StrangeAttractor05 extends JPanel implements Runnable{
   @Override
   public void run(){
     searchMaxMin();
-    System.out.println("min: " + min[0] + ":" + min[1]);
-    System.out.println("max: " + max[0] + ":" + max[1]);
     superSample = renderImage(superSample);
     superSample = mapDensities(superSample);
     superSample = gaussBlur(superSample,blurKernel);
@@ -261,13 +307,14 @@ public class StrangeAttractor05 extends JPanel implements Runnable{
   }
   
   public void searchMaxMin(){
-    double[] funcVals;
+    double[] funcVals, range;
     
     switch(codeString.charAt(0)){
       case 'A': ;
       case 'B': ;
       case 'C': ;
       case 'D': funcVals = new double[1];
+                range = new double[2];
                 funcVals[0] = 0.5;
                 max = new double[2];
                 min = new double[2];
@@ -284,11 +331,14 @@ public class StrangeAttractor05 extends JPanel implements Runnable{
                     min[0] = funcVals[0];
                   }
                 }
+                max[1] = max[0];
+                min[1] = min[0];
                 break;
       case 'E': ;
       case 'F': ;
       case 'G': ;
       case 'H': funcVals = new double[2];
+                range = new double[2];
                 funcVals[0] = 0.5;
                 funcVals[1] = 0.5;
                 max = new double[2];
@@ -314,14 +364,17 @@ public class StrangeAttractor05 extends JPanel implements Runnable{
                 }
                 break;
       default: funcVals = null;
+               range = new double[2];
                max = null;
                min = null;
                break;
     }
-    max[0] = max[0] * 1.1;
-    min[0] = min[0] * 1.1;
-    max[1] = max[0];
-    min[1] = min[0];
+    range[0] = max[0] - min[0];
+    range[1] = max[1] - min[1];
+    max[0] = max[0] + 0.05 * range[0];
+    min[0] = min[0] - 0.05 * range[0];
+    max[1] = max[1] + 0.05 * range[1];
+    min[1] = min[1] - 0.05 * range[1];
     xDelta = (superSample.length - 1)/(max[0] - min[0]);
     yDelta = (superSample[0].length - 1)/(max[1] - min[1]);
   }
@@ -337,5 +390,58 @@ public class StrangeAttractor05 extends JPanel implements Runnable{
   
   public void setPrev(int numPrev){
     this.numPrev = numPrev;
+  }
+  
+  private void testCode(String testString){
+    double ln2, lsum;
+    int j;
+    double[] funcVals;
+    Double x, y;
+    
+    switch(testString.charAt(0)){
+      case 'E': 
+        A = Util.decodeString(testString);
+        funcVals = new double[2];
+        funcVals[0] = 0.5d;
+        funcVals[1] = 0.5d;
+        x = new Double(funcVals[0]);
+        y = new Double(funcVals[1]);
+        j = 0;
+        while((j < numIterations) && !(x.isInfinite()) && !(x.isNaN()) && !(y.isInfinite()) && !(y.isNaN())){
+          funcVals = iterateFunc(funcVals,A);
+          x = new Double(funcVals[0]);
+          y = new Double(funcVals[1]);
+          j++;
+        }
+        break;
+      case 'D': ;
+      case 'C': ;
+      case 'A':
+        A = Util.decodeString(testString);
+        funcVals = new double[1];
+        funcVals[0] = 0.5d;
+        ln2 = log(2);
+        lsum = log(abs(calcDerivative(funcVals,A)[0]))/ln2;
+        x = new Double(funcVals[0]);
+        j = 0;
+        while((j < numIterations) && !(x.isInfinite()) && !(x.isNaN())){
+          funcVals = iterateFunc(funcVals,A);
+          x = new Double(funcVals[0]);
+          lsum += log(abs(calcDerivative(funcVals,A)[0]))/ln2;
+          lyapunov[0] = lsum/j;
+          j++;
+        }
+        break;
+      default:
+        j = 0;
+        funcVals = null;
+        break;
+    }
+    if (j == numIterations && lyapunov[0] > 0){
+      System.out.println("found");
+      System.out.println(testString);
+      //System.out.println(funcVals[0]);
+      //System.out.println(funcVals[1]);
+    }
   }
 }

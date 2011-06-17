@@ -5,6 +5,7 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.GridBagConstraints;
 import java.awt.image.BufferedImage;
+import java.text.DecimalFormat;
 
 class Util{
 
@@ -117,6 +118,13 @@ class Util{
     valString = valString.substring(0,valString.indexOf('.')+2);
     
     return Double.parseDouble(valString);
+  }
+  
+  protected static String fmt(double num){
+    DecimalFormat decFormat;
+    
+    decFormat = new DecimalFormat("+0.0000000000;-0.0000000000");
+    return(decFormat.format(num));
   }
   
   protected static char mapCoefficient(double coefficient){
