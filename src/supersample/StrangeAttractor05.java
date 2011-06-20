@@ -73,11 +73,50 @@ public class StrangeAttractor05 extends JPanel implements Runnable{
     switch(codeString.charAt(0)){
       case 'E':
         for (int a0 = 32;a0 < 128;a0++){
-          testString = "E";
-          for (int k = 0;k < 12;k++){
-            testString += (char)a0;
+          System.out.println("a0: " + a0);
+          for (int a1 = 32;a1 < 128;a1++){
+            System.out.println("a1: " + a1);
+            for (int a2 = 32;a2 < 128;a2++){
+              System.out.println("a2: " + a2);
+              for (int a3 = 32;a3 < 128;a3++){
+                System.out.println("a3: " + a3);
+                for (int a4 = 32;a4 < 128;a4++){
+                  System.out.println("a4: " + a4);
+                  for (int a5 = 32;a5 < 128;a5++){
+                    System.out.println("a5: " + a5);
+                    for (int a6 = 32;a6 < 128;a6++){
+                      System.out.println("a6: " + a6);
+                      for (int a7 = 32;a7 < 128;a7++){
+                        System.out.println("a7: " + a7);
+                        for (int a8 = 32;a8 < 128;a8++){
+                          for (int a9 = 32;a9 < 128;a9++){
+                            for (int a10 = 32;a10 < 128;a10++){
+                              for (int a11 = 32;a11 < 128;a11++){
+                                testString = "E";
+                                testString += (char)a0;
+                                testString += (char)a1;
+                                testString += (char)a2;
+                                testString += (char)a3;
+                                testString += (char)a4;
+                                testString += (char)a5;
+                                testString += (char)a6;
+                                testString += (char)a7;
+                                testString += (char)a8;
+                                testString += (char)a9;
+                                testString += (char)a10;
+                                testString += (char)a11;
+                                testCode(testString);
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
-          testCode(testString);
         }
         break;
       case 'D':
@@ -227,8 +266,8 @@ public class StrangeAttractor05 extends JPanel implements Runnable{
         funcVals = new double[2];
         funcVals[0] = 0.5d;
         funcVals[1] = 0.5d;
-        lsum[0] = log(abs(calcDerivative(funcVals,A)[0]))/ln2;
-        lsum[1] = log(abs(calcDerivative(funcVals,A)[1]))/ln2;
+        lsum[0] = log(calcDerivative(funcVals,A)[0])/ln2;
+        lsum[1] = log(calcDerivative(funcVals,A)[1])/ln2;
         for (int j = 0;j < numIterations;j++){
           funcVals = iterateFunc(funcVals,A);
           plot(sS,funcVals[0],funcVals[1],colours[0]);
@@ -393,55 +432,68 @@ public class StrangeAttractor05 extends JPanel implements Runnable{
   }
   
   private void testCode(String testString){
-    double ln2, lsum;
+    double ln2;
     int j;
-    double[] funcVals;
+    double[] funcVals, lsum;
     Double x, y;
     
+    ln2 = log(2);
     switch(testString.charAt(0)){
       case 'E': 
+        lsum = new double[2];
+        lyapunov = new double[2];
+        lyapunov[0] = 0d;
+        lyapunov[1] = 0d;
         A = Util.decodeString(testString);
         funcVals = new double[2];
         funcVals[0] = 0.5d;
         funcVals[1] = 0.5d;
         x = new Double(funcVals[0]);
         y = new Double(funcVals[1]);
+        lsum[0] = log(calcDerivative(funcVals,A)[0])/ln2;
+        lsum[1] = log(calcDerivative(funcVals,A)[1])/ln2;
         j = 0;
         while((j < numIterations) && !(x.isInfinite()) && !(x.isNaN()) && !(y.isInfinite()) && !(y.isNaN())){
           funcVals = iterateFunc(funcVals,A);
+          lsum[0] += log(abs(calcDerivative(funcVals,A)[0]))/ln2;
+          lsum[1] += log(abs(calcDerivative(funcVals,A)[1]))/ln2;
+          lyapunov[0] = lsum[0]/j;
+          lyapunov[1] = lsum[1]/j;
           x = new Double(funcVals[0]);
           y = new Double(funcVals[1]);
           j++;
+        }
+        if ((j == numIterations) && ((lyapunov[0] > 0) || (lyapunov[1] > 0))){
+          System.out.println("found");
+          System.out.println(testString);
         }
         break;
       case 'D': ;
       case 'C': ;
       case 'A':
+        lsum = new double[1];
         A = Util.decodeString(testString);
         funcVals = new double[1];
         funcVals[0] = 0.5d;
-        ln2 = log(2);
-        lsum = log(abs(calcDerivative(funcVals,A)[0]))/ln2;
+        lsum[0] = log(abs(calcDerivative(funcVals,A)[0]))/ln2;
         x = new Double(funcVals[0]);
         j = 0;
         while((j < numIterations) && !(x.isInfinite()) && !(x.isNaN())){
           funcVals = iterateFunc(funcVals,A);
+          lsum[0] += log(abs(calcDerivative(funcVals,A)[0]))/ln2;
+          lyapunov[0] = lsum[0]/j;
           x = new Double(funcVals[0]);
-          lsum += log(abs(calcDerivative(funcVals,A)[0]))/ln2;
-          lyapunov[0] = lsum/j;
           j++;
+        }
+        if (j == numIterations && lyapunov[0] > 0){
+          System.out.println("found");
+          System.out.println(testString);
         }
         break;
       default:
         j = 0;
         funcVals = null;
         break;
-    }
-    if (j == numIterations && lyapunov[0] > 0){
-      System.out.println("found");
-      System.out.println(testString);
-      //System.out.println(funcVals[0]);
-      //System.out.println(funcVals[1]);
     }
   }
 }
