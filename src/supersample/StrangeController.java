@@ -20,6 +20,7 @@ import static javax.swing.BorderFactory.createTitledBorder;
 import static supersample.Util.addComp;
 import static supersample.Util.decodeString;
 import static supersample.Util.fmt;
+import static supersample.Util.getHTML;
 
 public class StrangeController implements ActionListener, FocusListener{
   boolean fullScreen;
@@ -92,6 +93,27 @@ public class StrangeController implements ActionListener, FocusListener{
     //D: x = a00 + a01x + a02x^2 + a03x^3 + a04x^4 + a05x^5
     //E: x = a00 + a01x + a02x^2 + a03xy + a04y + a05y^2
     //   y = a06 + a07x + a08x^2 + a09xy + a10y + a11y^2
+    //F: x = a0 + a1x + a2x^2 + a3x^3
+    //     + a4x^2y + a5xy + a6xy^2
+    //     + a7y + a8y^2 + a9y^3
+    //   y = a10 + a11x + a12x^2 + a13x^3
+    //     + a14x^2y + a15xy + a16xy^2
+    //     + a17y + a18y^2 + a19y^3
+    //G: x = a0 + a1x + a2x^2 + a3x^3 + a4x^4
+    //     + a5x^3y + a6x^2y + a7x^2y^2 + a8xy + a9xy^2 + a10xy^3
+    //     + a11y + a12y^2 + a13y^3 + a14y^4
+    //   y = a15 + a16x + a17x^2 + a18x^3 + a19x^4
+    //     + a20x^3y + a21x^2y + a22x^2y^2 + a23xy + a24xy^2 + a25xy^3
+    //     + a26y + a27y^2 + a28y^3 + a29y^4
+    //H: x = a0 + a1x + a2x^2 + a3x^3 + a4x^4 + a5x^5 + a6x^4y + a7x^3y
+    //     + a8x^3y^2 + a9x^2y + a10x^2y^2 + a11x^2y^3 + a12xy + a13xy^2 
+    //     + a14xy^3  + a15xy^4 + a16y + a17y^2 + a18y^3 + a19y^4 + a20y^5
+    //   y = a21 + a22x + a23x^2 + a24x^3 + a25x^4 + a26x^5 + a27x^4y + a28x^3y
+    //     + a29x^3y^2 + a30x^2y + a31x^2y^2 + a32x^2y^3 + a33xy + a34xy^2 
+    //     + a35xy^3  + a36xy^4 + a37y + a38y^2 + a39y^3 + a40y^4 + a41y^5
+    //I: x = a0 + a1x + a2x^2 + a3xy + a4xz + a5y + a6y^2 + a7yz + a8z + a9z^2
+    //   y = a10 + a11x + a12x^2 + a13xy + a14xz + a15y + a16y^2 + a17yz + a18z + a19z^2
+    //   z = a20 + a21x + a22x^2 + a23xy + a24xz + a25y + a26y^2 + a27yz + a28z + a29z^2
     double[] coeffs;
     String formula;
     String[] terms;
@@ -109,17 +131,89 @@ public class StrangeController implements ActionListener, FocusListener{
                 break;
       case 'E': terms = new String[6];
                 break;
+      case 'F': terms = new String[10];
+                break;
+      case 'G': terms = new String[15];
+                break;
+      case 'H': terms = new String[21];
+                break;
+      case 'I': terms = new String[10];
+                break;
       default:  terms = new String[coeffs.length];
                 break;
     }
     switch(codeString.charAt(0)){
-      case 'E': terms[5] = "<i>y</i><sub>n</sub><sup>2</sup>";
-                terms[4] = "<i>y</i><sub>n</sub>";
-                terms[3] = "<i>x</i><sub>n</sub><i>y</i><sub>n</sub>";
-                terms[2] = "<i>x</i><sub>n</sub><sup>2</sup>";
-                terms[1] = "<i>x</i><sub>n</sub>";
-                terms[0] = "";
-                break;
+      case 'I':
+        terms[0] = "";
+        terms[1] = getHTML('x');
+        terms[2] = getHTML('x',2);
+        terms[3] = getHTML('x','y');
+        terms[4] = getHTML('x','z');
+        terms[5] = getHTML('y');
+        terms[6] = getHTML('y',2);
+        terms[7] = getHTML('y','z');
+        terms[8] = getHTML('z');
+        terms[9] = getHTML('z',2);
+        break;
+      case 'H':
+        terms[0] = "";
+        terms[1] = getHTML('x');
+        terms[2] = getHTML('x',2);
+        terms[3] = getHTML('x',3);
+        terms[4] = getHTML('x',4);
+        terms[5] = getHTML('x',5);
+        terms[6] = getHTML('x',4,'y');
+        terms[7] = getHTML('x',3,'y');
+        terms[8] = getHTML('x',3,'y',2);
+        terms[9] = getHTML('x',2,'y');
+        terms[10] = getHTML('x',2,'y',2);
+        terms[11] = getHTML('x',2,'y',3);
+        terms[12] = getHTML('x','y');
+        terms[13] = getHTML('x','y',2);
+        terms[14] = getHTML('x','y',3);
+        terms[15] = getHTML('x','y',4);
+        terms[16] = getHTML('y');
+        terms[17] = getHTML('y',2);
+        terms[18] = getHTML('y',3);
+        terms[19] = getHTML('y',4);
+        terms[20] = getHTML('y',5);
+      case 'G':
+        terms[0] = "";
+        terms[1] = getHTML('x');
+        terms[2] = getHTML('x',2);
+        terms[3] = getHTML('x',3);
+        terms[4] = getHTML('x',4);
+        terms[5] = getHTML('x',3,'y');
+        terms[6] = getHTML('x',2,'y');
+        terms[7] = getHTML('x',2,'y',2);
+        terms[8] = getHTML('x','y');
+        terms[9] = getHTML('x','y',2);
+        terms[10] = getHTML('x','y',3);
+        terms[11] = getHTML('y');
+        terms[12] = getHTML('y',2);
+        terms[13] = getHTML('y',3);
+        terms[14] = getHTML('y',4);
+        break;
+      case 'F':
+        terms[0] = "";
+        terms[1] = "<i>x</i><sub>n</sub>";
+        terms[2] = "<i>x</i><sub>n</sub><sup>2</sup>";
+        terms[3] = "<i>x</i><sub>n</sub><sup>3</sup>";
+        terms[4] = "<i>x</i><sub>n</sub><sup>2</sup><i>y</i><sub>n</sub>";
+        terms[5] = "<i>x</i><sub>n</sub><i>y</i><sub>n</sub>";
+        terms[6] = "<i>x</i><sub>n</sub><i>y</i><sub>n</sub><sup>2</sup>";
+        terms[7] = "<i>y</i><sub>n</sub>";
+        terms[8] = "<i>y</i><sub>n</sub><sup>2</sup>";
+        terms[9] = "<i>y</i><sub>n</sub><sup>3</sup>";
+        break;
+      case 'E':
+        terms[0] = "";
+        terms[1] = "<i>x</i><sub>n</sub>";
+        terms[2] = "<i>x</i><sub>n</sub><sup>2</sup>";
+        terms[3] = "<i>x</i><sub>n</sub><i>y</i><sub>n</sub>";
+        terms[4] = "<i>y</i><sub>n</sub>";
+        terms[5] = "<i>y</i><sub>n</sub><sup>2</sup>";
+        break;
       case 'D': terms[5] = "<i>x</i><sub>n</sub><sup>5</sup>";
       case 'C': terms[4] = "<i>x</i><sub>n</sub><sup>4</sup>";
       case 'B': terms[3] = "<i>x</i><sub>n</sub><sup>3</sup>";
@@ -135,40 +229,100 @@ public class StrangeController implements ActionListener, FocusListener{
       case 'A': ;
       case 'B': ;
       case 'C': ;
-      case 'D': for (int i = 1;i < coeffs.length;i++){
-                  if (coeffs[i] < 0)
-                    formula += " - ";
-                  else
-                    formula += " + ";
-                  formula += abs(coeffs[i]);
-                  formula += terms[i];
-                }
-                formula += "</html>";
-                break;
+      case 'D': 
+        for (int i = 1;i < coeffs.length;i++){
+          if (coeffs[i] < 0)
+            formula += " - ";
+          else
+            formula += " + ";
+          formula += abs(coeffs[i]);
+          formula += terms[i];
+        }
+        formula += "</html>";
+        break;
       case 'E': ;
       case 'F': ;
-      case 'G': ;
-      case 'H': for (int i = 1;i < coeffs.length/2;i++){
-                  if (coeffs[i] < 0)
-                    formula += " - ";
-                  else
-                    formula += " + ";
-                  formula += abs(coeffs[i]);
-                  formula += terms[i];
-                }
-                formula += "<br>";
-                formula += "<html><i>y</i><sub>n+1</sub> = ";
-                formula += coeffs[coeffs.length/2];
-                for (int i = coeffs.length/2 + 1;i < coeffs.length;i++){
-                  if (coeffs[i] < 0)
-                    formula += " - ";
-                  else
-                    formula += " + ";
-                  formula += abs(coeffs[i]);
-                  formula += terms[i % terms.length];
-                }
-                formula += "</html>";
-                break;
+      case 'G': 
+        for (int i = 1;i < coeffs.length/2;i++){
+          if (coeffs[i] < 0)
+            formula += " - ";
+          else
+            formula += " + ";
+          formula += abs(coeffs[i]);
+          formula += terms[i];
+        }
+        formula += "<br>";
+        formula += "<html><i>y</i><sub>n+1</sub> = ";
+        formula += coeffs[coeffs.length/2];
+        for (int i = coeffs.length/2 + 1;i < coeffs.length;i++){
+          if (coeffs[i] < 0)
+            formula += " - ";
+          else
+            formula += " + ";
+          formula += abs(coeffs[i]);
+          formula += terms[i % terms.length];
+        }
+        formula += "</html>";
+        break;
+      case 'H':
+        for (int i = 1;i < coeffs.length/2;i++){
+          if (coeffs[i] < 0)
+            formula += " - ";
+          else
+            formula += " + ";
+          formula += abs(coeffs[i]);
+          formula += terms[i];
+          if (i == 7 || i == 13)
+            formula += "    <br>";
+        }
+        formula += "<br>";
+        formula += "<html><i>y</i><sub>n+1</sub> = ";
+        formula += coeffs[coeffs.length/2];
+        for (int i = coeffs.length/2 + 1;i < coeffs.length;i++){
+          if (coeffs[i] < 0)
+            formula += " - ";
+          else
+            formula += " + ";
+          formula += abs(coeffs[i]);
+          formula += terms[i % terms.length];
+          if (i == 28 || i == 34)
+            formula += "<br>";
+        }
+        formula += "</html>";
+        break;
+      case 'I':
+        for (int i = 1;i < coeffs.length/3;i++){
+          if (coeffs[i] < 0)
+            formula += " - ";
+          else
+            formula += " + ";
+          formula += abs(coeffs[i]);
+          formula += terms[i];
+        }
+        formula += "<br>";
+        formula += "<html><i>y</i><sub>n+1</sub> = ";
+        formula += coeffs[coeffs.length/3];
+        for (int i = coeffs.length/3 + 1;i < 2*coeffs.length/3;i++){
+          if (coeffs[i] < 0)
+            formula += " - ";
+          else
+            formula += " + ";
+          formula += abs(coeffs[i]);
+          formula += terms[i % terms.length];
+        }
+        formula += "<br>";
+        formula += "<html><i>z</i><sub>n+1</sub> = ";
+        formula += coeffs[2*coeffs.length/3];
+        for (int i = 2*coeffs.length/3 + 1;i < coeffs.length;i++){
+          if (coeffs[i] < 0)
+            formula += " - ";
+          else
+            formula += " + ";
+          formula += abs(coeffs[i]);
+          formula += terms[i % terms.length];
+        }
+        formula += "</html>";
+        break;
     }
     
     return formula;
@@ -188,7 +342,7 @@ public class StrangeController implements ActionListener, FocusListener{
     codeLabel = new JLabel(" Attractor string ");
     codeLabel.setFont(boldFont);
     addComp(attrPanel,codeLabel,0,0,"EAST");
-    codeField = new JTextField("EWM?MPMMWMMMM");
+    codeField = new JTextField("IOHGWFIHJPSGWTOJBXWJKPBLKFRUKKQ");
     codeField.addFocusListener(this);
     codeField.setColumns(40);
     codeField.setFont(courFont);
