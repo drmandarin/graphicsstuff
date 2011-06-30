@@ -8,16 +8,21 @@ import javax.swing.JPanel;
 import static java.lang.Math.abs;
 import static java.lang.Math.log;
 import static java.lang.Math.pow;
+import static java.lang.Math.sin;
 import static java.lang.Math.sqrt;
 import static supersample.AntiAlias.downSample;
 import static supersample.AntiAlias.gaussBlur;
+import static supersample.Util.clearGrid;
 import static supersample.Util.fmt;
 import static supersample.Util.getLastCode;
 import static supersample.Util.mapDensities;
+import static supersample.Util.rotateGrid;
 import static supersample.Util.untestedCode;
+import static supersample.Util.writeImage;
 import static supersample.Util.writeString;
 
 public class StrangeAttractor05 extends JPanel implements Runnable{
+  protected boolean rendering;
   private byte superFactor;
   private double xDelta, yDelta;
   private int numIterations, numPrev, height, width;
@@ -34,17 +39,34 @@ public class StrangeAttractor05 extends JPanel implements Runnable{
   }
   
   private double[] calcDerivative(double func[], double[] A){
-    double dx, dy, x, y, x2, x3, x4, y2, y3, y4;
-    double xPrime, yPrime;
+    double dx, dy, dz, x, y, z, x2, x3, x4, y2, y3, y4;
+    double xPrime, yPrime, zPrime;
     double[] funcPrime;
     
     x = func[0];
     xPrime = 0d;
     yPrime = 0d;
+    zPrime = 0d;
     funcPrime = new double[func.length];
     for (int i = 0;i < funcPrime.length;i++)
       funcPrime[i] = 0d;
     switch(codeString.charAt(0)){
+      case 'I':
+        y = func[1];
+        z = func[2];
+        dx = A[1] + 2*A[2]*x + A[3]*y + A[4]*z;
+        dy = A[3]*x + A[5] + 2*A[6]*y + A[7]*z;
+        dz = A[4]*x + A[7]*y + A[8] + 2*A[9]*z;
+        xPrime = sqrt(dx * dx + dy * dy + dz * dz);
+        dx = A[11] + 2*A[12]*x + A[13]*y + A[14]*z;
+        dy = A[13]*x + A[15] + 2*A[16]*y + A[17]*z;
+        dz = A[14]*x + A[17]*y + A[18] + 2*A[19]*z;
+        yPrime = sqrt(dx * dx + dy * dy + dz * dz);
+        dx = A[21] + 2*A[22]*x + A[23]*y + A[24]*z;
+        dy = A[23]*x + A[25] + 2*A[26]*y + A[27]*z;
+        dz = A[24]*x + A[27]*y + A[28] + 2*A[29]*z;
+        zPrime = sqrt(dx * dx + dy * dy + dz * dz);
+        break;
       case 'H':
         x2 = pow(x,2);
         x3 = pow(x,3);
@@ -67,6 +89,7 @@ public class StrangeAttractor05 extends JPanel implements Runnable{
            + 3*A[32]*x2*y2 + A[33]*x + 2*A[34]*x*y + 3*A[35]*x*y2 + 4*A[36]*x*y3
            + A[37] + 2*A[38]*y + 3*A[39]*y2 + 4*A[40]*y3 + 5*A[41]*y4;
         yPrime = sqrt(dx * dx + dy * dy);
+        break;
       case 'G':
         y = func[1];
         dx = A[1] + 2*A[2]*x + 3*A[3]*pow(x,2) + 4*A[4]*pow(x,3)
@@ -111,7 +134,7 @@ public class StrangeAttractor05 extends JPanel implements Runnable{
       default:  break;
     }
     switch(funcPrime.length){
-      case 3: ;//funcPrime[2] = zPrime;
+      case 3: funcPrime[2] = zPrime;
       case 2: funcPrime[1] = yPrime;
       case 1: funcPrime[0] = xPrime;
               break;
@@ -226,12 +249,9 @@ public class StrangeAttractor05 extends JPanel implements Runnable{
     sampleKernel = new GaussKernel(superFactor,superFactor);
     finalImage = new rgba[width][height];
     superSample = new rgba[width*superFactor][height*superFactor];
-    for (int x=0;x<superSample.length;x++){
-      for (int y=0;y<superSample[x].length;y++){
-        superSample[x][y] = new rgba();
-      }
-    }
+    superSample = clearGrid(superSample);
     bufferedImage = new BufferedImage(width,height,BufferedImage.TYPE_INT_RGB);
+    rendering = true;
   }
   
   private double[] iterateFunc(double[] funcN, double[] A){
@@ -434,19 +454,6 @@ public class StrangeAttractor05 extends JPanel implements Runnable{
     return sS;
   }
   
-  private rgba[][] plotPoints(tuple[] dataPoints, rgba[][] sS, int start, int end){
-    int[][] colours;
-
-    colours = new int[2][3];
-    colours[0] = Util.red(255);
-    colours[1] = Util.green(255);
-    
-    for (int j = start;j < numIterations;j++){
-      plot(sS,dataPoints[j].tuple[0],dataPoints[j].tuple[1],dataPoints[j].tuple[2],colours[0]);
-    }
-    return sS;
-  }
-  
   private rgba[][] plot(rgba[][] sS, double xFunc, double yFunc, double zFunc, int[] colour){
     int xGrid, yGrid;
     
@@ -460,6 +467,22 @@ public class StrangeAttractor05 extends JPanel implements Runnable{
         else{
           sS[xGrid][yGrid].addColour(255,1,(int)((zFunc/max[2])*255));
         }
+      }
+    }
+    return sS;
+  }
+  
+  private rgba[][] plotPoints(tuple[] dataPoints, rgba[][] sS, int start, int end){
+    int[][] colours;
+
+    colours = new int[2][3];
+    colours[0] = Util.red(255);
+    colours[1] = Util.green(255);
+    
+    for (int j = start;j < end;j++){
+      sS = plot(sS,dataPoints[j].tuple[0],dataPoints[j].tuple[1],dataPoints[j].tuple[2],colours[0]);
+      if (j % 100 == 0){
+        sS = plot(sS,-dataPoints[j].tuple[0],dataPoints[j].tuple[1],dataPoints[j].tuple[2],colours[0]);
       }
     }
     return sS;
@@ -771,18 +794,73 @@ public class StrangeAttractor05 extends JPanel implements Runnable{
 
   @Override
   public void run(){
-    dataPoints = new tuple[numIterations];
-    frames = new BufferedImage[numIterations/10000];
+    boolean buffer;
+    
+    buffer = false;
     searchMaxMin();
-    //superSample = renderImage(superSample);
-    dataPoints = renderImage(dataPoints);
-    for (int k = 0;k < frames.length;k++){
-      superSample = plotPoints(dataPoints,superSample,k*10000,(k+1)*10000);
+    if(buffer){
+      dataPoints = new tuple[numIterations];
+      frames = new BufferedImage[numIterations/10000];
+      dataPoints = renderImage(dataPoints);
+      for (int k = 0;k < frames.length;k++){
+        frames[k] = new BufferedImage(width,height,BufferedImage.TYPE_INT_RGB);
+        superSample = plotPoints(dataPoints,superSample,0,(k+1)*10000);
+        superSample = mapDensities(superSample);
+        superSample = gaussBlur(superSample,blurKernel);
+        finalImage = downSample(superSample,sampleKernel,superFactor);
+        writeImage(finalImage,"image" + k);
+        frames[k] = convertImage(bufferedImage,finalImage);
+        superSample = new rgba[width*superFactor][height*superFactor];
+        superSample = clearGrid(superSample);
+        finalImage = new rgba[width][height];
+        bufferedImage = new BufferedImage(width,height,BufferedImage.TYPE_INT_RGB);
+      }
+      rendering = false;
+      for (int k = 0;k < frames.length;k++){
+        bufferedImage = frames[k];
+        writeImage(bufferedImage,"bfimg" + k);
+        writeImage(frames[k],"frame" + k);
+        repaint();
+        try{
+          Thread.sleep(50);
+          System.out.println(k);
+        }
+        catch(Exception e){}
+      }
+    }
+    else{
+      dataPoints = new tuple[numIterations];
+      dataPoints = renderImage(dataPoints);
+      rendering = false;
+      superSample = plotPoints(dataPoints,superSample,0,dataPoints.length);
       superSample = mapDensities(superSample);
       superSample = gaussBlur(superSample,blurKernel);
       finalImage = downSample(superSample,sampleKernel,superFactor);
-      //bufferedImage = convertImage(bufferedImage,finalImage);
-      frames[k] = convertImage(bufferedImage,finalImage);
+      bufferedImage = convertImage(bufferedImage,finalImage);
+      writeImage(bufferedImage,"bfimg01");
+      /*
+      int tracker = 2;
+      for (int k = 5;k < 90;k = k+5){
+        superSample = new rgba[width*superFactor][height*superFactor];
+        superSample = clearGrid(superSample);
+        finalImage = new rgba[width][height];
+        bufferedImage = new BufferedImage(width,height,BufferedImage.TYPE_INT_RGB);
+        superSample = plotPoints(rotateGrid(dataPoints,k),superSample,0,dataPoints.length);
+        superSample = mapDensities(superSample);
+        superSample = gaussBlur(superSample,blurKernel);
+        finalImage = downSample(superSample,sampleKernel,superFactor);
+        bufferedImage = convertImage(bufferedImage,finalImage);
+        writeImage(bufferedImage,"bfimg0" + tracker);
+        tracker++;
+      }
+      /*
+      superSample = renderImage(superSample);
+      rendering = false;
+      superSample = mapDensities(superSample);
+      superSample = gaussBlur(superSample,blurKernel);
+      finalImage = downSample(superSample,sampleKernel,superFactor);
+      bufferedImage = convertImage(bufferedImage,finalImage);
+       */
     }
   }
   

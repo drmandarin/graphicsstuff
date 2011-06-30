@@ -452,6 +452,7 @@ public class StrangeController implements ActionListener, FocusListener{
   @Override
   public void actionPerformed(ActionEvent e){
     String sourceName;
+    Thread thread;
     
     sourceName = ((JButton)e.getSource()).getName();
     if (sourceName.equalsIgnoreCase("renderButton")){
@@ -474,7 +475,16 @@ public class StrangeController implements ActionListener, FocusListener{
       jpanel.setCode(codeField.getText());
       jpanel.setIterations(Integer.parseInt(iterField.getText()));
       jpanel.setPrev(prevBox.getSelectedIndex());
-      jpanel.run();
+      thread = new Thread(jpanel);
+      thread.start();
+      while (jpanel.rendering){
+        try{
+          Thread.sleep(500);
+        }
+        catch(Exception ex){
+          System.out.println("Exception in actionPerformed: " + ex.getMessage());
+        }
+      }
       lyaValLabel.setText(fmt(jpanel.getLyapunov()[0]));
     }
     else if (sourceName.equalsIgnoreCase("searchButton")){

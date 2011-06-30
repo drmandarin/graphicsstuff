@@ -11,6 +11,9 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.text.DecimalFormat;
+import static java.lang.Math.PI;
+import static java.lang.Math.cos;
+import static java.lang.Math.sin;
 
 class Util{
 
@@ -103,6 +106,15 @@ class Util{
     else if(anchor.matches("WEST"))
       c.anchor = GridBagConstraints.WEST;
     cont.add(comp,c);
+  }
+  
+  protected static rgba[][] clearGrid(rgba[][] grid){
+    for (int x = 0;x < grid.length;x++){
+      for (int y = 0;y < grid[x].length;y++){
+        grid[x][y] = new rgba();
+      }
+    }
+    return grid;
   }
   
   protected static double[] decodeString(String inString){
@@ -226,6 +238,32 @@ class Util{
     return mappedImage;
   }
   
+  protected static tuple[] rotateGrid(tuple[] grid, int angle){
+    double theta, x, y, z;
+    double[][] R;
+    tuple[] rotGrid;
+    
+    rotGrid = new tuple[grid.length];
+    theta = (double)angle * PI/180;
+    R = new double[3][3];
+    R[0][0] = 1;
+    R[0][1] = 0;
+    R[0][2] = 0;
+    R[1][0] = 0;
+    R[1][1] = cos(theta);
+    R[1][2] = -sin(theta);
+    R[2][0] = 0;
+    R[2][1] = sin(theta);
+    R[2][2] = cos(theta);
+    for (int k = 0;k < grid.length;k++){
+      x = grid[k].tuple[0] * R[0][0] + grid[k].tuple[1] * R[0][1] + grid[k].tuple[2] * R[0][2];
+      y = grid[k].tuple[0] * R[1][0] + grid[k].tuple[1] * R[1][1] + grid[k].tuple[2] * R[1][2];
+      z = grid[k].tuple[0] * R[2][0] + grid[k].tuple[1] * R[2][1] + grid[k].tuple[2] * R[2][2];
+      rotGrid[k] = new tuple(x,y,z);
+    }
+    return rotGrid;
+  }
+  
   protected static boolean untestedCode(String lastCode, String newCode){
     boolean untested;
     
@@ -236,6 +274,19 @@ class Util{
     }
     
     return untested;
+  }
+  
+  protected static void writeImage(BufferedImage bI, String fN){
+    File outFile;
+
+    try{
+      outFile = new java.io.File("C:\\TEMP\\sa\\" + fN + ".bmp");
+      javax.imageio.ImageIO.write(bI,"bmp",outFile);
+    }
+    catch(Exception e){
+      System.out.println("Exception in writeImage");
+      System.out.println(e.getMessage());
+    }
   }
 
   protected static void writeImage(rgba[][] wI, String fN){
@@ -254,11 +305,11 @@ class Util{
     }
 
     try{
-      outFile = new java.io.File("C:\\TEMP\\" + fN + ".bmp");
+      outFile = new java.io.File("C:\\TEMP\\sa\\" + fN + ".bmp");
       javax.imageio.ImageIO.write(bI,"bmp",outFile);
     }
     catch(Exception e){
-      System.out.println("Exception in SuperSample2.writeImage");
+      System.out.println("Exception in writeImage");
       System.out.println(e.getMessage());
     }
   }
