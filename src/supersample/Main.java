@@ -7,6 +7,11 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import javax.swing.*;
 
 public class Main implements KeyListener, MouseListener, MouseWheelListener{
@@ -19,8 +24,10 @@ public class Main implements KeyListener, MouseListener, MouseWheelListener{
   //StrangeAttractor04 jpanel;
   StrangeController strangeController;
   //SuperSample4 superSample4;
+  String snapshotDir;
  
   public Main(){
+    getProperties();
     UIManager.LookAndFeelInfo[] lfi = UIManager.getInstalledLookAndFeels();
     for (int i=0;i<lfi.length;i++){
       //System.out.println(lfi[i].getName());
@@ -44,6 +51,53 @@ public class Main implements KeyListener, MouseListener, MouseWheelListener{
     winFrame.addMouseListener(this);
     winFrame.addMouseWheelListener(this);
      */
+  }
+  
+  private void getProperties(){
+    BufferedReader propFileReader;
+    BufferedWriter propFileWriter;
+    File propFile;
+    String propFileName, propLine, propName, propVal;
+    
+    propFileName = System.getProperty("user.home");
+    propFileName += System.getProperty("file.separator");
+    propFileName += "sa.properties";
+    
+    propFile = new File(propFileName);
+    if (propFile.exists()){
+      try{
+        propFileReader = new BufferedReader(new FileReader(propFile));
+        propLine = propFileReader.readLine();
+        while (propLine != null){
+          propLine = propLine.replace(" ","");
+          propName = propLine.substring(0,propLine.indexOf("="));
+          propVal = propLine.substring(propLine.indexOf("=")+1);
+          switch(propName){
+            case "snapshotDir":
+              snapshotDir = propVal;
+              break;
+          }
+          propLine = propFileReader.readLine();
+        }
+        propFileReader.close();
+      }
+      catch(Exception e){
+      }
+    }
+    else{
+      try{
+        propFile.createNewFile();
+        propFileWriter = new BufferedWriter(new FileWriter(propFile));
+        if ((System.getProperty("os.name")).toLowerCase().contains("windows")){
+          propFileWriter.write("snapshotDir = c:\\tmp\\sa");
+          snapshotDir = "c:\\tmp\\sa";
+        }
+        propFileWriter.flush();
+        propFileWriter.close();
+      }
+      catch(Exception e){
+      }
+    }
   }
   
   private void setupController(){
